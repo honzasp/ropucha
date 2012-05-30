@@ -109,10 +109,6 @@ module Ropucha
 
       attr_reader :buttons
 
-      def to_sexp
-        [:buttons, @buttons]
-      end
-
       def value
         @buttons.map{|b| self.class::BUTTON_VALUES[b]}.inject{|a,b| a+b}
       end
@@ -132,6 +128,10 @@ module Ropucha
         :left => 2,
         :start => 16
       }
+
+      def to_sexp
+        [:buttons, @buttons]
+      end
 
       def param_src
         "button_num:#{value}"
@@ -157,6 +157,10 @@ module Ropucha
         :"5" => 256,
         :"6" => 512,
       }
+
+      def to_sexp
+        [:rc100_buttons, @buttons]
+      end
 
       def param_src
         "rc100z_num:#{value}"

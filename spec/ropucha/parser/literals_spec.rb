@@ -89,5 +89,34 @@ describe Ropucha::Parser do
         ]]
       ]]
     end
+
+    it "parses multiple RC100 buttons' numbers" do
+      @program = <<-END
+      main
+        rc = rc100 buttons up 1 5
+      end
+      END
+
+      sexp.should == [:ropucha, [
+        [:main, [
+          [:assign, [:var, "rc"], [:rc100_buttons, [:up, :"1", :"5"]]]
+        ]]
+      ]]
+    end
+
+    it "parses a single RC100 button number" do
+      @program = <<-END
+      main
+        rc = rc100 buttons 5
+      end
+      END
+
+      sexp.should == [:ropucha, [
+        [:main, [
+          [:assign, [:var, "rc"], [:rc100_buttons, [:"5"]]]
+        ]]
+      ]]
+    end
+
   end
 end

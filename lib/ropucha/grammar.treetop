@@ -1,0 +1,327 @@
+module Ropucha
+  grammar RopuchaGrammar
+
+    rule program
+      "" list:(whitespace? definition whitespace?)* {
+        def to_node
+          Nodes::Program.new(self, definitions)
+        end
+
+        def definitions
+          list.elements.map { |e| e.definition.to_node }
+        end
+      }
+    end
+
+    rule definition
+      main
+    end
+
+    rule main
+      "main" space? statement_end block space? the_end {
+        def to_node
+          Nodes::Main.new(self, block.to_node)
+        end
+      }
+    end
+
+    rule the_end
+      "end" word_end
+    end
+
+    rule block
+      "" list:(space? statement space? statement_end)* {
+        def to_node
+          Nodes::Block.new(self, list.elements.map{|e| e.statement.to_node })
+        end
+      }
+    end
+
+    rule statement_end
+      [\n;] whitespace?
+    end
+
+    rule statement
+      if /
+      while /
+      loop /
+      for /
+      assignment /
+      break_loop
+    end
+
+    rule assignment
+      lvalue space? "=" space? expression {
+        def to_node
+          Nodes::Assignment.new(self, lvalue.to_node, expression.to_node)
+        end
+      }
+    end
+
+    rule break_loop
+      "break" word_end {
+        def to_node
+          Nodes::Break.new(self)
+        end
+      }
+    end
+
+    rule lvalue
+      variable
+    end
+
+    rule if
+      "if" space if_conditions:conditions statement_end if_block:block
+      elseifs:("elseif" space conditions statement_end block)*
+      else_:("else" space? statement_end block)?
+      the_end {
+        def to_node
+          Nodes::If.new(self, [if_branch] + elseif_branches, else_branch)
+        end
+
+        def if_branch
+          Nodes::If::Branch.new(self, if_conditions.to_node, if_block.to_node)
+        end
+
+        def elseif_branches
+          elseifs.elements.map{|e| Nodes::If::Branch.new(e, e.conditions.to_node, e.block.to_node) }
+        end
+
+        def else_branch
+          unless else_.text_value.empty?
+            Nodes::If::ElseBranch.new(else_, else_.block.to_node)
+          else
+            nil
+          end
+        end
+      }
+    end
+
+    rule while
+      "while" space conditions statement_end block the_end {
+        def to_node
+          Nodes::While.new(self, conditions.to_node, block.to_node)
+        end
+      }
+    end
+
+    rule loop
+      "loop" statement_end block the_end {
+        def to_node
+          Nodes::Loop.new(self, block.to_node)
+        end
+      }
+    end
+
+    rule for
+      "for" space variable space "in" space
+      from:expression space? ".." space? to:expression space? statement_end
+      block the_end {
+        def to_node
+          Nodes::For.new(self, variable.to_node, from.to_node, to.to_node, block.to_node)
+        end
+      }
+    end
+
+    rule conditions
+      first:condition space tail:(logical_operator space? condition space?)+ {
+        def to_node
+          tail.elements.inject(first.to_node) do |conditions, e|
+            Nodes::Logic.new(e, e.logical_operator.to_sym, conditions, e.condition.to_node)
+          end
+        end
+      } / condition
+    end
+
+    rule condition
+      "(" space? conditions space? ")" {
+        def to_node
+          conditions.to_node
+        end
+      } / left:expression space? compare_operator space? right:expression {
+        def to_node
+          Nodes::Compare.new(self, compare_operator.to_sym, left.to_node, right.to_node)
+        end
+      }
+    end
+
+    rule logical_operator
+      "" ("and" / "or") {
+        def to_sym
+          text_value.to_sym
+        end
+      }
+    end
+
+    rule compare_operator
+      "" ("==" / "!=" / "<" / ">" / "<=" / ">=") {
+        def to_sym
+          text_value.to_sym
+        end
+      }
+    end
+
+    rule expression
+      literal /
+      variable
+    end
+
+    rule literal
+      boolean /
+      direction_number /
+      position_number /
+      timer_seconds /
+      buttons /
+      rc100_buttons /
+      number 
+    end
+
+    rule number
+      binary_number /
+      decimal_number
+    end
+
+    rule decimal_number
+      [0-9] [0-9_]* {
+        def to_node
+          Nodes::DecimalNumber.new(self, text_value.gsub("_", "").to_i)
+        end
+      }
+    end
+
+    rule binary_number
+      "0b" zerosones:[01_]+ {
+        def to_node
+          Nodes::BinaryNumber.new(self, zerosones.text_value.gsub("_", "").to_i(2))
+        end
+      }
+    end
+
+    rule boolean
+      ("true" / "false") {
+        def to_node
+          Nodes::Boolean.new(self, text_value == "true")
+        end
+      }
+    end
+
+    rule direction_number
+      number space? dir:("ccw" / "cw") {
+        def to_node
+          Nodes::DirectionNumber.new(self, number.to_node.value, dir.text_value.to_sym)
+        end
+      }
+    end
+
+    rule position_number
+      "position" space number {
+        def to_node
+          Nodes::PositionNumber.new(self, number.to_node.value)
+        end
+      }
+    end
+
+    rule buttons
+      "button" space button {
+        def to_node
+          Nodes::Buttons.new(self, [button.to_sym])
+        end
+      } /
+      "buttons" list:(space button)+ {
+        def to_node
+          Nodes::Buttons.new(self, list.elements.map{|e| e.button.to_sym})
+        end
+      }
+    end
+
+    rule button
+      button_name "" &{ |seq| Nodes::Buttons::BUTTON_NAMES.has_key? seq[0].text_value } { 
+        def to_sym
+          Nodes::Buttons::BUTTON_NAMES[button_name.text_value]
+        end
+      }
+    end
+
+    rule rc100_buttons
+      "rc100" space "button" space rc100_button {
+        def to_node
+          Nodes::RC100Buttons.new(self, [rc100_button.to_sym])
+        end
+      } /
+      "rc100" space "buttons" list:(space rc100_button)+ {
+        def to_node
+          Nodes::RC100Buttons.new(self, list.elements.map{|e| e.rc100_button.to_sym})
+        end
+      }
+    end
+
+    rule rc100_button
+      button_name "" &{ |seq| Nodes::RC100Buttons::BUTTON_NAMES.has_key? seq[0].text_value } {
+        def to_sym
+          Nodes::RC100Buttons::BUTTON_NAMES[button_name.text_value]
+        end
+      }
+    end
+
+    rule button_name
+      [0-9a-zA-Z_]+ word_end
+    end
+
+    rule timer_seconds
+      float_number space? "s" word_end {
+        def to_node
+          Nodes::TimerSeconds.new(self, float_number.text_value.to_f)
+        end
+      }
+    end
+
+    rule float_number
+      [1-9] [0-9]* "." [0-9]+
+    end
+
+    rule variable
+      "" name:words {
+        def to_node
+          Nodes::Variable.new(self, name.to_identifier)
+        end
+      }
+    end
+
+    rule words
+      word (space word)* {
+        def to_identifier
+          text_value.gsub(/\s+/, " ")
+        end
+      }
+    end
+
+    rule word
+      !keyword [a-zA-Z_'] word_character*
+    end
+
+    rule word_character
+      [a-zA-Z_0-9']
+    end
+
+    rule keyword
+      ("main" / "while" / "loop" / "for" / "end" / "if" / "in" / "break" /
+      "elseif" / "else" / "and" / "or" / "true" / "false") word_end
+    end
+
+    rule word_end
+      !word_character
+    end
+
+    rule non_whitespace
+      !whitespace .
+    end
+
+    rule whitespace
+      [ \t\r\n]+
+    end
+
+    rule space
+      [ \t]+
+    end
+  end
+end

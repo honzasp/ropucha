@@ -1,0 +1,5 @@
+main
+  if a == 3
+    b = 4
+  end
+end

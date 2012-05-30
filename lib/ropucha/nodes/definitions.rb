@@ -49,5 +49,18 @@ module Ropucha
         end
       end
     end
+
+    class Devices < Node
+      def initialize(syntax_node, device_name_defs)
+        super(syntax_node)
+        @device_name_defs = device_name_defs
+      end
+
+      attr_reader :device_name_defs
+
+      def to_sexp
+        [:devices, device_name_defs.map(&:to_sexp)]
+      end
+    end
   end
 end

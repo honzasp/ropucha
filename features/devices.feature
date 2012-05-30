@@ -157,3 +157,23 @@ Feature: Devices
       | sound data       | 35 |
       | ir com arrived   | 46 |
       | ir com rxd       | 48 |
+
+  Scenario: Setting an unnamed motor's property
+    Given a program
+    """
+    main
+      [motor 5]:moving speed = 1000
+    end
+    """
+    When I compile the program
+    Then the TSK should contain line "o load param_dest:motor:4:32 param_src:dec_num:1000"
+
+  Scenario: Getting an unnamed S1 sensor's property
+    Given a program
+    """
+    main
+      s = [s1 100]:sound count
+    end
+    """
+    When I compile the program
+    Then the TSK should contain line "o load param_dest:var:s param_src:s1:100:37"

@@ -14,7 +14,8 @@ module Ropucha
     end
 
     rule definition
-      main
+      main /
+      devices
     end
 
     rule main
@@ -25,8 +26,46 @@ module Ropucha
       }
     end
 
+    rule devices
+      "devices" space? statement_end 
+      list:(space? device_name_def space? statement_end)*
+      the_end {
+        def to_node
+          Nodes::Devices.new(self, list.elements.map{|e| e.device_name_def.to_node})
+        end
+      }
+    end
+
     rule the_end
       "end" word_end
+    end
+
+    rule device_name_def
+      device_name space? "=" space? device_id {
+        def to_node
+          Nodes::DeviceNameDef.new(self, device_name.to_node, device_id.to_node)
+        end
+      }
+    end
+
+    rule device_id
+      words num:(space number)? {
+        def to_node
+          if num.text_value.empty?
+            Nodes::DeviceId.new(self, words.to_identifier)
+          else
+            Nodes::DeviceId.new(self, words.to_identifier, num.number.to_i)
+          end
+        end
+      }
+    end
+
+    rule device_name
+      words "" {
+        def to_node
+          Nodes::DeviceName.new(self, words.to_identifier)
+        end
+      }
     end
 
     rule block
@@ -67,6 +106,7 @@ module Ropucha
     end
 
     rule lvalue
+      device_property /
       variable
     end
 
@@ -162,6 +202,7 @@ module Ropucha
     end
 
     rule expression
+      device_property /
       literal /
       variable
     end
@@ -335,6 +376,14 @@ module Ropucha
       }
     end
 
+    rule device_property
+      device:(spec:device_name "" / "[" space? spec:device_id space? "]") space? ":" space? words {
+        def to_node
+          Nodes::DeviceProperty.new(self, device.spec.to_node, words.to_identifier)
+        end
+      }
+    end
+
     rule words
       word (space word)* {
         def to_identifier
@@ -352,7 +401,7 @@ module Ropucha
     end
 
     rule keyword
-      ("main" / "while" / "loop" / "for" / "end" / "if" / "in" / "break" /
+      ("main" / "devices" / "while" / "loop" / "for" / "end" / "if" / "in" / "break" /
       "elseif" / "else" / "and" / "or" / "true" / "false") word_end
     end
 

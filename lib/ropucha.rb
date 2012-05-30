@@ -7,6 +7,7 @@ require 'ropucha/nodes/statements'
 require 'ropucha/nodes/literals'
 require 'ropucha/nodes/variables'
 require 'ropucha/nodes/conditions'
+require 'ropucha/nodes/devices'
 
 module Ropucha
   def self.compile(program)

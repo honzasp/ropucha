@@ -86,12 +86,12 @@ module Ropucha
         end
 
         def compile(g, type)
+          generator_msg = type == "if" ? :if_ : :elseif_
           conditions.to_condition_list(g) do |condition_list|
-            g.o_line "#{type} #{condition_list} rop:then"
+            g.__send__(generator_msg, condition_list) do |g|
+              block.compile(g)
+            end
           end
-          g.o_line "begin"
-          block.compile(g)
-          g.o_line "end"
         end
       end
 
@@ -108,10 +108,9 @@ module Ropucha
         end
 
         def compile(g)
-          g.o_line "else"
-          g.o_line "begin"
-          block.compile(g)
-          g.o_line "end"
+          g.else_ do |g|
+            block.compile(g)
+          end
         end
       end
     end
@@ -132,12 +131,10 @@ module Ropucha
 
       def compile(g)
         conditions.to_condition_list(g) do |condition_list|
-          g.o_line "while #{condition_list} rop:then"
+          g.while_(condition_list) do |g|
+            block.compile(g)
+          end
         end
-
-        g.o_line "begin"
-        block.compile(g)
-        g.o_line "end"
       end
     end
 
@@ -154,10 +151,9 @@ module Ropucha
       end
 
       def compile(g)
-        g.o_line "while(1)"
-        g.o_line "begin"
-        block.compile(g)
-        g.o_line "end"
+        g.while_1 do |g|
+          block.compile(g)
+        end
       end
     end
 
@@ -183,13 +179,11 @@ module Ropucha
         from.to_param_src(g) do |from_param_src|
           to.to_param_src(g) do |to_param_src|
             var = variable.tsk_variable_name
-            g.o_line "for param_var:#{var} param_src:#{from_param_src} param_src:#{to_param_src}"
+            g.for(var, from_param_src, to_param_src) do |g|
+              block.compile(g)
+            end
           end
         end
-
-        g.o_line "begin"
-        block.compile(g)
-        g.o_line "end"
       end
     end
 
@@ -203,7 +197,7 @@ module Ropucha
       end
 
       def compile(g)
-        g.o_line("break")
+        g.break
       end
     end
 

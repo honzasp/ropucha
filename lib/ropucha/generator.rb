@@ -1,7 +1,7 @@
 module Ropucha
   class Generator
     def initialize
-      @tsk = "".force_encoding("ascii")
+      @tsk_lines = []
     end
 
     attr_accessor :version
@@ -17,13 +17,13 @@ module Ropucha
       checksum_bytes
     end
 
-    attr_reader :tsk
+    def tsk
+      @tsk_lines.join("\n")
+    end
 
     def main
       o_line "main"
-      o_line "begin"
-      yield self
-      o_line "end"
+      block_ {|g| yield g}
     end
 
     def comment(text)
@@ -36,35 +36,80 @@ module Ropucha
       o_line "load param_dest:#{param_dest} param_src:#{param_src}"
     end
 
-    def line(l)
-      @tsk << l << "\n"
+    def if_(conditions)
+      o_line "if #{conditions} rop:then"
+      block_ {|g| yield g}
     end
 
-    def o_line(l)
-      @tsk << "o " << l << "\n"
+    def elseif_(conditions)
+      o_line "elseif #{conditions} rop:then"
+      block_ {|g| yield g}
     end
 
-    def m_line
-      @tsk << "- \n"
+    def else_
+      o_line "else"
+      block_ {|g| yield g}
+    end
+
+    def while_(conditions)
+      o_line "while #{conditions} rop:then"
+      block_ {|g| yield g}
+    end
+
+    def while_1
+      o_line "while(1)"
+      block_ {|g| yield g}
+    end
+
+    def for(var, from, to)
+      o_line "for param_var:#{var} param_src:#{from} param_src:#{to}"
+      block_ {|g| yield g}
+    end
+
+    def break
+      o_line "break"
     end
 
     private
 
+    def block_
+      o_line "begin"
+      yield self
+      o_line "end"
+    end
+
+    def line(l)
+      @tsk_lines.push l
+    end
+
+    def o_line(l)
+      line "o #{l}"
+    end
+
+    def m_line
+      line "- #{l}"
+    end
+
     def magic_bytes
-      @tsk << bytes_to_str([239, 187, 191])
+      raw bytes_to_str([239, 187, 191])
     end
 
     def checksum_bytes
       ch = checksum
-      @tsk << bytes_to_str([(ch >> 8) & 255, ch & 255])
+      raw bytes_to_str([(ch >> 8) & 255, ch & 255])
     end
 
     def checksum
-      @tsk.bytes.inject(-1){|ch,b| (ch-b) }
+      tsk.bytes.inject(-1){|ch,b| (ch-b) }
     end
 
     def bytes_to_str(bytes)
       bytes.map(&:chr).join("")
+    end
+
+    def raw(str)
+      @tsk_lines.push "" if @tsk_lines.empty?
+      @tsk_lines.last << str
     end
   end
 end

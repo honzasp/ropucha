@@ -84,20 +84,42 @@ module Ropucha
       end
     end
 
-    class PositionNumber < Literal
+    class UnitNumber < Literal
       def initialize(syntax_node, number)
         super(syntax_node)
         @number = number
       end
 
       attr_reader :number
+    end
 
+    class PositionNumber < UnitNumber
       def to_sexp
-        [:position_number, @number]
+        [:position_number, number]
       end
 
       def param_src
         "position_num:#{number}"
+      end
+    end
+
+    class MelodyNumber < UnitNumber
+      def to_sexp
+        [:melody_number, number]
+      end
+
+      def param_src
+        "melody_num:#{number}"
+      end
+    end
+
+    class ScaleNumber < UnitNumber
+      def to_sexp
+        [:scale_number, number]
+      end
+
+      def param_src
+        "scale_num:#{number}"
       end
     end
 
@@ -167,9 +189,7 @@ module Ropucha
       end
     end
 
-    class TimerSeconds < Literal
-      TICKS_PER_SECOND = 1.0 / 0.128
-
+    class Seconds < Literal
       def initialize(syntax_node, seconds)
         super(syntax_node)
         @seconds = seconds
@@ -177,13 +197,50 @@ module Ropucha
 
       attr_reader :seconds
 
-      def timer_number
-        (@seconds * TICKS_PER_SECOND).round
+      def units_number
+        (@seconds * self.class::UNITS_PER_SECOND).round
       end
+    end
+
+    class TimerSeconds < Seconds
+      UNITS_PER_SECOND = 1.0 / 0.128
+      alias_method :timer_number, :units_number
 
       def param_src
         "timer_num:#{timer_number}"
       end
+
+      def to_sexp
+        [:timer_s, seconds]
+      end
     end
+
+    class BuzzerSeconds < Seconds
+      UNITS_PER_SECOND = 1.0 / 0.1
+      alias_method :buzzer_time_number, :units_number
+
+      def param_src
+        "buzzertime_num:#{buzzer_time_number}"
+      end
+
+      def to_sexp
+        [:buzzer_s, seconds]
+      end
+    end
+
+    class BuzzerPlayMelody < Literal
+      def initialize(syntax_node)
+        super(syntax_node)
+      end
+
+      def to_sexp
+        [:buzzer_play_melody]
+      end
+
+      def param_src
+        "buzzertime_num:255"
+      end
+    end
+
   end
 end

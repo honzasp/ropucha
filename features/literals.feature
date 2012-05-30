@@ -25,4 +25,8 @@ Feature: Literals
       | button u           | button_num:8      |
       | rc100 buttons d 1  | rc100z_num:18     |
       | rc100 button 5     | rc100z_num:256    |
-      | 12.8 s             | timer_num:100     |
+      | 12.8 timer s       | timer_num:100     |
+      | 2.0 buzzer s       | buzzertime_num:20 |
+      | buzzer play melody | buzzertime_num:255|
+      | melody 19          | melody_num:19     |
+      | scale 0            | scale_num:0       |

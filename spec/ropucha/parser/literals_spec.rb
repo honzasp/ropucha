@@ -118,5 +118,75 @@ describe Ropucha::Parser do
       ]]
     end
 
+    it "parses a timer seconds number" do
+      @program = <<-END
+      main
+        x = 6.4 timer s
+      end
+      END
+
+      sexp.should == [:ropucha, [
+        [:main, [
+          [:assign, [:var, "x"], [:timer_s, 6.4]]
+        ]]
+      ]]
+    end
+
+    it "parses a buzzer seconds number" do
+      @program = <<-END
+      main
+        x = 5.0 buzzer s
+      end
+      END
+
+      sexp.should == [:ropucha, [
+        [:main, [
+          [:assign, [:var, "x"], [:buzzer_s, 5.0]]
+        ]]
+      ]]
+    end
+
+    it "parses a buzzer play melody literal" do
+      @program = <<-END
+      main
+        y = buzzer play melody
+      end
+      END
+
+      sexp.should == [:ropucha, [
+        [:main, [
+          [:assign, [:var, "y"], [:buzzer_play_melody]]
+        ]]
+      ]]
+    end
+
+    it "parses a melody number literal" do
+      @program = <<-END
+      main
+        z = melody 5
+      end
+      END
+
+      sexp.should == [:ropucha, [
+        [:main, [
+          [:assign, [:var, "z"], [:melody_number, 5]]
+        ]]
+      ]]
+    end
+
+    it "parses a scale number literal" do
+      @program = <<-END
+      main
+        f = scale 5
+      end
+      END
+
+      sexp.should == [:ropucha, [
+        [:main, [
+          [:assign, [:var, "f"], [:scale_number, 5]]
+        ]]
+      ]]
+    end
+
   end
 end

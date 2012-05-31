@@ -13,6 +13,10 @@ module Ropucha
         statements.map &:to_sexp
       end
 
+      def context(ctx)
+        statements.each { |s| s.context(ctx) }
+      end
+
       def compile(g)
         statements.each { |s| s.compile(g) }
       end
@@ -30,6 +34,11 @@ module Ropucha
 
       def to_sexp
         [:assign, lvalue.to_sexp, rvalue.to_sexp]
+      end
+
+      def context(ctx)
+        lvalue.context(ctx)
+        rvalue.context(ctx)
       end
 
       def compile(g)
@@ -65,6 +74,12 @@ module Ropucha
         branches[1..-1]
       end
 
+      def context(ctx)
+        if_branch.context(ctx)
+        elseif_branches.each{|b| b.context(ctx) }
+        else_branch.context(ctx) if has_else?
+      end
+
       def compile(g)
         if_branch.compile(g, "if")
         elseif_branches.each{|e| e.compile(g, "elseif") }
@@ -83,6 +98,11 @@ module Ropucha
 
         def to_sexp
           [:branch, conditions.to_sexp, block.to_sexp]
+        end
+
+        def context(ctx)
+          conditions.context(ctx)
+          block.context(ctx)
         end
 
         def compile(g, type)
@@ -107,6 +127,10 @@ module Ropucha
           [:else_branch, block.to_sexp]
         end
 
+        def context(ctx)
+          block.context(ctx)
+        end
+
         def compile(g)
           g.else_ do |g|
             block.compile(g)
@@ -129,6 +153,11 @@ module Ropucha
         [:while, conditions.to_sexp, block.to_sexp]
       end
 
+      def context(ctx)
+        conditions.context(ctx)
+        block.context(ctx)
+      end
+
       def compile(g)
         conditions.to_condition_list(g) do |condition_list|
           g.while_(condition_list) do |g|
@@ -148,6 +177,10 @@ module Ropucha
 
       def to_sexp
         [:loop, block.to_sexp]
+      end
+
+      def context(ctx)
+        block.context(ctx)
       end
 
       def compile(g)
@@ -175,6 +208,13 @@ module Ropucha
         [:for, variable.to_sexp, from.to_sexp, to.to_sexp, block.to_sexp]
       end
 
+      def context(ctx)
+        variable.context(ctx)
+        from.context(ctx)
+        to.context(ctx)
+        block.context(ctx)
+      end
+
       def compile(g)
         from.to_param_src(g) do |from_param_src|
           to.to_param_src(g) do |to_param_src|
@@ -194,6 +234,9 @@ module Ropucha
 
       def to_sexp
         [:break]
+      end
+
+      def context(ctx)
       end
 
       def compile(g)

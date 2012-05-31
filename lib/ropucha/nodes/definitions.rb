@@ -13,20 +13,16 @@ module Ropucha
         [:ropucha, definitions.map(&:to_sexp)]
       end
 
+      def context(ctx)
+        definitions.each { |d| d.context(ctx) }
+        @main = ctx.main
+      end
+
       def compile(g)
         g.version = "2.05"
         g.platform = "bioloid2"
         g.file do |g|
-          main.compile(g)
-        end
-      end
-
-      def main
-        found = @definitions.select { |d| d.kind_of? Main }
-        if found.size == 1
-          found[0]
-        else
-          raise CompileError, "There are #{found.size} main definitions, but one is needed"
+          @main.compile(g)
         end
       end
     end
@@ -43,6 +39,11 @@ module Ropucha
         [:main, block.to_sexp]
       end
 
+      def context(ctx)
+        ctx.main = self
+        block.context(ctx)
+      end
+
       def compile(g)
         g.main do
           block.compile(g)
@@ -57,6 +58,10 @@ module Ropucha
       end
 
       attr_reader :device_name_defs
+
+      def context(ctx)
+        @device_name_defs.each { |d| d.context(ctx) }
+      end
 
       def to_sexp
         [:devices, device_name_defs.map(&:to_sexp)]

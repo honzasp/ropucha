@@ -1,7 +1,9 @@
 module Ropucha
   class Generator
+    TMP_VAR_PREFIX = "_tmp_"
+
     def initialize
-      @tsk_lines = []
+      @tsk = ""
     end
 
     attr_accessor :version
@@ -18,7 +20,7 @@ module Ropucha
     end
 
     def tsk
-      @tsk_lines.join("\n")
+      @tsk
     end
 
     def main
@@ -79,7 +81,7 @@ module Ropucha
     end
 
     def line(l)
-      @tsk_lines.push l
+      @tsk << "#{l}\n"
     end
 
     def o_line(l)
@@ -108,8 +110,7 @@ module Ropucha
     end
 
     def raw(str)
-      @tsk_lines.push "" if @tsk_lines.empty?
-      @tsk_lines.last << str
+      @tsk << str
     end
   end
 end

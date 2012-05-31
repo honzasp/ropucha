@@ -9,6 +9,9 @@ module Ropucha
       def to_param_src(g)
         yield param_src
       end
+
+      def context(ctx)
+      end
     end
 
     class Number < Literal

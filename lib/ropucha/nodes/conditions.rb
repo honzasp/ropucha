@@ -17,6 +17,11 @@ module Ropucha
         [operator, left.to_sexp, right.to_sexp]
       end
 
+      def context(ctx)
+        left.context(ctx)
+        right.context(ctx)
+      end
+
       def to_condition_list(g, &block)
         to_condition(g, &block)
       end

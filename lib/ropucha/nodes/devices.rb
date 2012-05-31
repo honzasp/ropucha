@@ -14,6 +14,10 @@ module Ropucha
       def to_sexp
         [:device_name_def, device_name.to_sexp, device_id.to_sexp]
       end
+
+      def context(ctx)
+        ctx.device_name(device_name.identifier, device_id)
+      end
     end
 
     class DeviceId < Node
@@ -30,12 +34,27 @@ module Ropucha
         !!device_num
       end
 
+      def tsk_device_spec
+        if has_number?
+          "#{device_type}:#{device_num}"
+        else
+          device_type
+        end
+      end
+
+      def tsk_device_type
+        device_type
+      end
+
       def to_sexp
         if has_number?
           [:device_id, device_type, device_num]
         else
           [:device_id, device_type]
         end
+      end
+
+      def context(ctx)
       end
     end
 
@@ -49,6 +68,18 @@ module Ropucha
 
       def to_sexp
         [:device_name, identifier]
+      end
+
+      def context(ctx)
+        @device_id = ctx.device_id_by_name(identifier)
+      end
+
+      def tsk_device_spec
+        @device_id.tsk_device_spec
+      end
+
+      def tsk_device_type
+        @device_id.tsk_device_type
       end
     end
 
@@ -64,6 +95,23 @@ module Ropucha
 
       def to_sexp
         [:device_property, device.to_sexp, property_name]
+      end
+
+      def context(ctx)
+        device.context(ctx)
+        tsk_device_spec = device.tsk_device_spec
+        tsk_device_type = device.tsk_device_type
+        property_id = DEVICE_PROPERTY_ID[tsk_device_type][property_name]
+
+        @param = "#{tsk_device_spec}:#{property_id}"
+      end
+
+      def to_param_dest(g)
+        yield @param
+      end
+
+      def to_param_src(g)
+        yield @param
       end
     end
 

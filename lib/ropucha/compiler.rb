@@ -4,18 +4,24 @@ module Ropucha
   end
 
   class Compiler
-    def initialize(root_node)
-      @root_node = root_node
-      @generator = Generator.new
+    def initialize
+      @loader = nil
+      @main_program = nil
     end
+
+    attr_accessor :loader
+    attr_accessor :main_program
 
     def compile
-      @root_node.compile(@generator)
-      @tsk = @generator.tsk
-    end
+      @generator = Generator.new
+      @global_context = GlobalContext.new
 
-    def tsk
-      @tsk
+      parser = Parser.new(main_program)
+      tree = parser.parse
+
+      tree.context(@global_context)
+      tree.compile(@generator)
+      @generator.tsk
     end
   end
 end

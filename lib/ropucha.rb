@@ -1,6 +1,8 @@
 require 'ropucha/parser'
 require 'ropucha/compiler'
 require 'ropucha/generator'
+require 'ropucha/global_context'
+require 'ropucha/device_properties'
 require 'ropucha/nodes/node'
 require 'ropucha/nodes/definitions'
 require 'ropucha/nodes/statements'
@@ -11,12 +13,8 @@ require 'ropucha/nodes/devices'
 
 module Ropucha
   def self.compile(program)
-    parser = Ropucha::Parser.new(program)
-    parser.parse
-
-    compiler = Ropucha::Compiler.new(parser.root_node)
+    compiler = Ropucha::Compiler.new
+    compiler.main_program = program
     compiler.compile
-
-    compiler.tsk
   end
 end

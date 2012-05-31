@@ -117,7 +117,7 @@ Feature: Devices
     end
     """
     When I compile the program
-    Then the TSK should contain line "o load param_dest:s1:100 param_src:dec_num:0"
+    Then the TSK should contain line "o load param_dest:s1:100:<id> param_src:dec_num:0"
 
     Examples:
       | parameter        | id |
@@ -166,7 +166,7 @@ Feature: Devices
     end
     """
     When I compile the program
-    Then the TSK should contain line "o load param_dest:motor:4:32 param_src:dec_num:1000"
+    Then the TSK should contain line "o load param_dest:motor:5:32 param_src:dec_num:1000"
 
   Scenario: Getting an unnamed S1 sensor's property
     Given a program

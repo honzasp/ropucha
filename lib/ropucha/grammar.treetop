@@ -194,7 +194,7 @@ module Ropucha
     end
 
     rule compare_operator
-      "" ("==" / "!=" / "<" / ">" / "<=" / ">=") {
+      "" ("==" / "!=" / "<=" / ">=" / "<" / ">") {
         def to_sym
           text_value.to_sym
         end

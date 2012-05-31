@@ -1,3 +1,4 @@
 tsk_files/
 checksum/
+examples/*.tsk
 .*.sw*

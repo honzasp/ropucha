@@ -1,0 +1,17 @@
+devices
+  board = cm
+  wheel = motor 6
+end
+
+main
+  wheel:moving speed = 1000 ccw
+  board:timer = 100
+  board:aux led = true
+  loop
+    if board:timer <= 0
+      break
+    end
+  end
+  board:aux led = false
+  wheel:moving speed = 0 ccw
+end

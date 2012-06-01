@@ -1,5 +1,9 @@
+require 'ropucha/grammar_helper'
+
 module Ropucha
   grammar RopuchaGrammar
+
+    include GrammarHelper
 
     rule program
       "" list:(whitespace? definition whitespace?)* {
@@ -90,9 +94,9 @@ module Ropucha
     end
 
     rule assignment
-      lvalue space? "=" space? expression {
+      writable space? "=" space? expression {
         def to_node
-          Nodes::Assignment.new(self, lvalue.to_node, expression.to_node)
+          Nodes::Assignment.new(self, writable.to_node, expression.to_node)
         end
       }
     end
@@ -105,7 +109,7 @@ module Ropucha
       }
     end
 
-    rule lvalue
+    rule writable
       device_property /
       variable
     end
@@ -202,6 +206,51 @@ module Ropucha
     end
 
     rule expression
+      additive
+    end
+
+    rule additive
+      first:multitive space? tail:(operator:additive_operator space?  operand:multitive space?)+ 
+      <ArithmeticOperation> / multitive
+    end
+
+    rule additive_operator
+      ("+" / "-") <ArithmeticOperator>
+    end
+
+    rule multitive
+      first:bit_ands space? tail:(operator:multitive_operator space? operand:bit_ands space?)+
+      <ArithmeticOperation> / bit_ands
+    end
+
+    rule multitive_operator
+      ("*" / "/") <ArithmeticOperator>
+    end
+
+    rule bit_ands
+      first:bit_ors space? tail:(operator:bit_and_operator space? operand:bit_ors space?)+
+      <ArithmeticOperation> / bit_ors
+    end
+
+    rule bit_and_operator
+      "" "&" <ArithmeticOperator>
+    end
+
+    rule bit_ors
+      first:primary space? tail:(operator:bit_or_operator space? operand:primary space?)+
+      <ArithmeticOperation> / primary
+    end
+
+    rule bit_or_operator
+      "" "|" <ArithmeticOperator>
+    end
+
+    rule primary
+      "(" space? expression space? ")" {
+        def to_node
+          expression.to_node
+        end
+      } /
       device_property /
       literal /
       variable

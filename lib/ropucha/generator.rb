@@ -4,6 +4,20 @@ module Ropucha
 
     def initialize
       @tsk = ""
+      @free_tmp_vars = []
+      @tmp_var_counter = 0
+    end
+
+    def tmp_var
+      unless @free_tmp_vars.empty?
+        var = @free_tmp_vars.pop
+      else
+        @tmp_var_counter += 1
+        var = "var:#{TMP_VAR_PREFIX}#@tmp_var_counter"
+      end
+
+      yield var
+      @free_tmp_vars.push(var)
     end
 
     attr_accessor :version
@@ -36,6 +50,10 @@ module Ropucha
 
     def load(param_dest, param_src)
       o_line "load param_dest:#{param_dest} param_src:#{param_src}"
+    end
+
+    def compute(param_dest, operator, left, right)
+      o_line "compute param_dest:#{param_dest} param_src:#{left} aop:#{operator} param_src:#{right}"
     end
 
     def if_(conditions)

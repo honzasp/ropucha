@@ -7,7 +7,7 @@ When /^I compile the program$/ do
 end
 
 Then /^the TSK should contain line "([^"]*)"$/ do |line|
-  @tsk.should match(/^#{line}$/)
+  @tsk.lines.map(&:chomp).should include(line)
 end
 
 Then /^the TSK should contain lines$/ do |lines|

@@ -159,10 +159,16 @@ module Ropucha
       end
 
       def compile(g)
-        conditions.to_condition_list(g) do |condition_list|
-          g.while_(condition_list) do |g|
-            block.compile(g)
+        g.while_1 do |g|
+          conditions.to_condition_list(g) do |condition_list|
+            g.if_(condition_list) do
+            end
+            g.else_ do
+              g.break
+            end
           end
+
+          block.compile(g)
         end
       end
     end

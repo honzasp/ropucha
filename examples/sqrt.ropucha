@@ -1,0 +1,16 @@
+main
+  n = 81
+  a = 1
+  b = n
+
+  while (b-a) < 2
+    c = (a+b) / 2
+    if c*c > n
+      b = c
+    else
+      a = c
+    end
+  end
+
+  [cm]:print with line = a
+end

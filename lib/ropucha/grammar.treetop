@@ -19,7 +19,9 @@ module Ropucha
 
     rule definition
       main /
-      devices
+      devices /
+      procedure /
+      function
     end
 
     rule main
@@ -36,6 +38,36 @@ module Ropucha
       the_end {
         def to_node
           Nodes::Devices.new(self, list.elements.map{|e| e.device_name_def.to_node})
+        end
+      }
+    end
+
+    rule procedure
+      "procedure" space name:words space? "(" space? subroutine_params space? ")" space?
+      statement_end block space? the_end {
+        def to_node
+          Nodes::ProcedureDef.new(self, name.to_identifier, subroutine_params.to_list, block.to_node)
+        end
+      }
+    end
+
+    rule function
+      "function" space name:words space? "(" space? subroutine_params space? ")" space?
+      statement_end block space? the_end {
+        def to_node
+          Nodes::FunctionDef.new(self, name.to_identifier, subroutine_params.to_list, block.to_node)
+        end
+      }
+    end
+
+    rule subroutine_params
+      "" params:(first:words space? tail:("," space? words space?)*)? {
+        def to_list
+          unless params.empty?
+            [params.first.to_identifier] + params.tail.elements.map{|e| e.words.to_identifier}
+          else
+            []
+          end
         end
       }
     end
@@ -89,6 +121,8 @@ module Ropucha
       while /
       loop /
       for /
+      return /
+      call /
       assignment /
       break_loop
     end
@@ -205,6 +239,38 @@ module Ropucha
       }
     end
 
+    rule call
+      name:words space? "(" space? args:call_arguments? space? ")" {
+        def to_node
+          Nodes::Call.new(self, name.to_identifier, arguments)
+        end
+
+        def arguments
+          unless args.empty?
+            [args.first.to_node] + args.tail.elements.map{|e| e.expression.to_node }
+          else
+            []
+          end
+        end
+      }
+    end
+
+    rule call_arguments
+      first:expression space? tail:("," space? expression space?)*
+    end
+
+    rule return
+      "return" space expr:expression? {
+        def to_node
+          if expr.empty?
+            Nodes::Return.new(self)
+          else
+            Nodes::Return.new(self, expr.to_node)
+          end
+        end
+      }
+    end
+
     rule expression
       additive
     end
@@ -251,6 +317,7 @@ module Ropucha
           expression.to_node
         end
       } /
+      call /
       device_property /
       literal /
       variable

@@ -16,6 +16,7 @@ module Ropucha
       def context(ctx)
         definitions.each { |d| d.context(ctx) }
         @main = ctx.main
+        @subroutine_defs = ctx.subroutine_defs
       end
 
       def compile(g)
@@ -23,6 +24,7 @@ module Ropucha
         g.platform = "bioloid2"
         g.file do |g|
           @main.compile(g)
+          @subroutine_defs.each {|d| d.compile(g) }
         end
       end
     end

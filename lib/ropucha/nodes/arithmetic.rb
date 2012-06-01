@@ -32,8 +32,8 @@ module Ropucha
 
       def to_param_src(g)
         g.tmp_var do |tmp|
-          load_to(g, tmp)
-          yield tmp
+          load_to(g, "var:#{tmp}")
+          yield "var:#{tmp}"
         end
       end
     end

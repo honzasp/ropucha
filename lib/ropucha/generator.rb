@@ -1,6 +1,23 @@
 module Ropucha
   class Generator
     TMP_VAR_PREFIX = "_tmp_"
+    ARG_VAR_PREFIX = "_arg_"
+    RETURN_VAR_PREFIX = "_return_"
+
+    RESERVED_VAR_PREFIX_REGEXP = /^(#{TMP_VAR_PREFIX}|#{ARG_VAR_PREFIX}|#{RETURN_VAR_PREFIX})/
+
+    def self.identifier_to_tsk_var(identifier)
+      identifier_to_tsk(identifier).gsub(RESERVED_VAR_PREFIX_REGEXP, "x")
+    end
+
+    def self.identifier_to_faddr(identifier)
+      identifier_to_tsk(identifier)
+    end
+
+    def self.identifier_to_tsk(identifier)
+      identifier.gsub(/\s/, "_").gsub(/[^a-zA-Z_]/, "").gsub(/^$/, "x")
+    end
+
 
     def initialize
       @tsk = ""
@@ -13,11 +30,19 @@ module Ropucha
         var = @free_tmp_vars.pop
       else
         @tmp_var_counter += 1
-        var = "var:#{TMP_VAR_PREFIX}#@tmp_var_counter"
+        var = "#{TMP_VAR_PREFIX}#@tmp_var_counter"
       end
 
       yield var
       @free_tmp_vars.push(var)
+    end
+
+    def arg_var(faddr, arg_index)
+      "#{ARG_VAR_PREFIX}#{faddr}_#{arg_index+1}"
+    end
+
+    def return_var(faddr)
+      "#{RETURN_VAR_PREFIX}#{faddr}"
     end
 
     attr_accessor :version
@@ -86,8 +111,21 @@ module Ropucha
       block_ {|g| yield g}
     end
 
+    def function(faddr)
+      o_line "function faddr_src:#{faddr}"
+      block_{|g| yield g}
+    end
+
+    def call(faddr)
+      o_line "call faddr_dest:#{faddr}"
+    end
+
     def break
       o_line "break"
+    end
+
+    def return
+      o_line "return"
     end
 
     private

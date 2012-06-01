@@ -14,10 +14,12 @@ module Ropucha
       end
 
       def context(ctx)
-        @tsk_variable_name = ctx.variable_to_tsk(name)
+        @context = ctx
       end
 
-      attr_reader :tsk_variable_name
+      def tsk_variable_name
+        @context.variable_to_tsk(name)
+      end
 
       def to_param_dest(g)
         yield "var:#{tsk_variable_name}"

@@ -1,0 +1,232 @@
+devices
+  left front = motor 1
+  right front = motor 2
+  left back = motor 3
+  right back = motor 4
+  left hand = motor 8
+  right hand = motor 7
+  hand elevator = motor 6
+  board = cm
+  sensor = s1 100
+  back hand first elevator = motor 5
+  back hand second elevator = motor 16
+  back hand left = motor 10
+  back hand right = motor 9
+end
+
+main
+  wheel speed max = 1023
+  wheel speed nom = 400
+  hand wheel speed = 500
+
+  back hand first elevator:moving speed = 1023
+
+  connection check time = 0
+  acrobat()
+end
+
+procedure acrobat()
+  wheel speed = wheel speed nom
+  back hand first elevation = back hand first elevator:present position
+  back hand second elevation = back hand second elevator:present position
+  hand elevation = hand elevator:present position - 512
+
+  loop
+    read = board:remocon rxd
+    moving buttons()
+    hand buttons()
+    tool buttons()
+    use hand angle()
+    use hand elevation()
+    use back hand elevation()
+
+    if wheel speed > wheel speed nom
+      board:aux led = true
+    else
+      board:aux led = false
+    end
+  end
+
+  read = 0
+end
+
+procedure moving buttons()
+  if read == rc100 button up
+    backward()
+  elseif read == rc100 button down
+    forward()
+  elseif read == rc100 buttons up right
+    forward right()
+  elseif read == rc100 buttons up left
+    forward left()
+  elseif read == rc100 buttons down left
+    backward left()
+  elseif read == rc100 buttons down right
+    backward right()
+  elseif read == rc100 button right
+    turn right()
+  elseif read == rc100 button left
+    turn left()
+  else
+    stop()
+  end
+end
+
+procedure hand buttons()
+  if read == rc100 button 2
+    hand angle = hand angle - 1
+  elseif read == rc100 button 4
+    hand angle = hand angle + 1
+  elseif read == rc100 button 3
+    hand elevation = hand elevation - 1
+  elseif read == rc100 button 1
+    hand elevation = hand elevation + 1
+  elseif read == rc100 buttons 1 6
+    back hand first elevation = back hand first elevation - 1
+  elseif read == rc100 buttons 3 6
+    back hand first elevation = back hand first elevation + 1
+  elseif read == rc100 buttons 2 6
+    back hand second elevation = back hand second elevation - 1
+  elseif read == rc100 buttons 4 6
+    back hand second elevation = back hand second elevation + 1
+  end
+
+  if read == rc100 buttons up 6
+    back hand backward()
+  elseif read == rc100 buttons down 6
+    back hand forward()
+  else
+    back hand stop()
+  end
+end
+
+procedure tool buttons()
+  if read == rc100 buttons 5 6
+    reset()
+  elseif read == rc100 button 5;
+    if wheel speed changed == false
+      wheel speed changed = true
+      if wheel speed == wheel speed nom
+        wheel speed = wheel speed max
+      else
+        wheel speed = wheel speed nom
+      end
+    end
+  end
+
+  if read != rc100 button 6
+    wheel speed changed = false
+  end
+end
+
+procedure use hand angle()
+  if hand angle > 300
+    hand angle = 300
+  elseif hand angle < -150
+    hand angle = -150
+  end
+
+  left hand:goal position = 512 - hand angle 
+  right hand:goal position = 512 + hand angle
+end
+
+procedure use hand elevation()
+  if hand elevation > 300
+    hand elevation = 300
+  elseif hand elevation < -300
+    hand elevation = -300
+  end
+
+  hand elevator:goal position = hand elevation + 512
+end
+
+procedure use back hand elevation()
+  back hand second elevator:goal position = back hand second elevation
+  back hand first elevator:goal position = back hand first elevation
+end
+
+
+procedure reset()
+  hand angle = -150
+  hand elevation = 0
+  back hand first elevation = 220
+  back hand second elevation = 820
+end
+
+procedure stop()
+  left front:moving speed = 0
+  left back:moving speed = 0
+  right front:moving speed = 0
+  right back:moving speed = 0
+end
+
+procedure forward()
+  left front:moving speed = 0 cw + wheel speed
+  right front:moving speed = 0 ccw + wheel speed
+  left back:moving speed = 0 cw + wheel speed
+  right back:moving speed = 0 ccw + wheel speed
+end
+
+procedure backward()
+  left front:moving speed = 0 ccw + wheel speed
+  right front:moving speed = 0 cw + wheel speed
+  left back:moving speed = 0 ccw + wheel speed
+  right back:moving speed = 0 cw + wheel speed
+end
+
+procedure turn right()
+  left front:moving speed = 0 ccw + wheel speed
+  right front:moving speed = 0 ccw + wheel speed
+  left back:moving speed = 0 ccw + wheel speed
+  right back:moving speed = 0 ccw + wheel speed
+end
+
+procedure turn left()
+  left front:moving speed = 0 cw + wheel speed
+  right front:moving speed = 0 cw + wheel speed
+  left back:moving speed = 0 cw + wheel speed
+  right back:moving speed = 0 cw + wheel speed
+end
+
+procedure forward right()
+  left front:moving speed = 0 ccw + wheel speed
+  right front:moving speed = 0 cw + wheel speed / 2
+  left back:moving speed = 0 ccw + wheel speed
+  right back:moving speed = 0 cw + wheel speed / 2
+end
+
+procedure forward left()
+  left front:moving speed = 0 ccw + wheel speed / 2
+  right front:moving speed = 0 cw + wheel speed
+  left back:moving speed = 0 ccw + wheel speed / 2
+  right back:moving speed = 0 cw + wheel speed
+end
+
+procedure backward left()
+  left front:moving speed = 0 cw + wheel speed / 2
+  right front:moving speed = 0 ccw + wheel speed
+  left back:moving speed = 0 cw + wheel speed / 2
+  right back:moving speed = 0 ccw + wheel speed
+end
+
+procedure backward right()
+  left front:moving speed = 0 cw + wheel speed
+  right front:moving speed = 0 ccw + wheel speed / 2
+  left back:moving speed = 0 cw + wheel speed
+  right back:moving speed = 0 ccw + wheel speed / 2
+end
+
+procedure back hand forward()
+  back hand left:moving speed = 0 cw + hand wheel speed
+  back hand right:moving speed = 0 ccw + hand wheel speed
+end
+
+procedure back hand backward()
+  back hand left:moving speed = 0 ccw + hand wheel speed
+  back hand right:moving speed = 0 cw + hand wheel speed
+end
+
+procedure back hand stop()
+  back hand left:moving speed = 0
+  back hand right:moving speed = 0
+end

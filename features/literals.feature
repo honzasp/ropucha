@@ -16,6 +16,7 @@ Feature: Literals
     Examples:
       | literal            | tsk               |
       | 42                 | dec_num:42        |
+      | -3                 | dec_num:-3        |
       | true               | bool_num:1        |
       | 0b1110             | bin_num:14        |
       | 400 ccw            | dir_num:400       |

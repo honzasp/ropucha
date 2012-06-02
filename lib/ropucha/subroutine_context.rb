@@ -1,13 +1,17 @@
 module Ropucha
   class SubroutineContext
-    def initialize(parent_context, subroutine_def)
+    def initialize(parent_context, subroutine)
       @parent = parent_context
-      @subroutine_def = subroutine_def
+      @subroutine = subroutine
       @local_vars = {}
     end
 
     attr_reader :parent
-    attr_reader :subroutine_def
+    attr_reader :subroutine
+
+    def subroutine_def(name)
+      parent.subroutine_def(name)
+    end
 
     def register_tsk_var(name, tsk_var)
       @local_vars[name] = tsk_var

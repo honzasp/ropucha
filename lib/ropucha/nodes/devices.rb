@@ -71,14 +71,20 @@ module Ropucha
       end
 
       def context(ctx)
-        @device_id = ctx.device_id_by_name(identifier)
+        @context = ctx
       end
-
+      
       def tsk_device_spec
-        @device_id.tsk_device_spec
+        @device_id = @context.device_id_by_name(identifier)
+        if @device_id
+          @device_id.tsk_device_spec
+        else
+          raise CompileError, "Unknown device name '#{identifier}'"
+        end
       end
 
       def tsk_device_type
+        @device_id = @context.device_id_by_name(identifier)
         @device_id.tsk_device_type
       end
     end
@@ -99,19 +105,21 @@ module Ropucha
 
       def context(ctx)
         device.context(ctx)
+      end
+
+      def to_param
         tsk_device_spec = device.tsk_device_spec
         tsk_device_type = device.tsk_device_type
         property_id = DEVICE_PROPERTY_ID[tsk_device_type][property_name]
-
-        @param = "#{tsk_device_spec}:#{property_id}"
+        "#{tsk_device_spec}:#{property_id}"
       end
 
       def to_param_dest(g)
-        yield @param
+        yield to_param
       end
 
       def to_param_src(g)
-        yield @param
+        yield to_param
       end
     end
 

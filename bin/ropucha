@@ -2,4 +2,19 @@
 $LOAD_PATH.unshift("lib")
 require 'ropucha'
 
-print Ropucha.compile(File.read(ARGV[0]))
+if ARGV[0].nil?
+  input = STDIN
+else
+  input = File.open(ARGV[0], "rb")
+end
+
+if ARGV[1].nil?
+  output = STDOUT
+else
+  output = File.open(ARGV[1], "wb")
+end
+
+output.write(Ropucha.compile(File.read(ARGV[0])))
+
+output.close
+input.close

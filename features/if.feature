@@ -64,13 +64,16 @@ Feature: If
     o begin
     o load param_dest:var:b param_src:dec_num:4
     o end
-    o elseif param_src:var:a lop:== param_src:dec_num:6 rop:then
+    o else
+    o begin
+    o if param_src:var:a lop:== param_src:dec_num:6 rop:then
     o begin
     o load param_dest:var:b param_src:dec_num:3
     o end
     o else
     o begin
     o load param_dest:var:b param_src:dec_num:5
+    o end
     o end
     """
 
@@ -96,16 +99,25 @@ Feature: If
     o begin
     o load param_dest:var:b param_src:dec_num:1
     o end
-    o elseif param_src:var:b lop:== param_src:dec_num:2 rop:then
+    o else
+    o begin
+    o if param_src:var:b lop:== param_src:dec_num:2 rop:then
     o begin
     o load param_dest:var:a param_src:dec_num:2
     o end
-    o elseif param_src:var:c lop:== param_src:dec_num:4 rop:then
+    o else
+    o begin
+    o if param_src:var:c lop:== param_src:dec_num:4 rop:then
     o begin
     o load param_dest:var:d param_src:dec_num:5
     o end
-    o elseif param_src:var:f lop:== param_src:dec_num:2 rop:then
+    o else
+    o begin
+    o if param_src:var:f lop:== param_src:dec_num:2 rop:then
     o begin
     o load param_dest:var:g param_src:dec_num:3
+    o end
+    o end
+    o end
     o end
     """

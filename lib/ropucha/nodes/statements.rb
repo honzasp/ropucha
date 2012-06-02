@@ -66,24 +66,17 @@ module Ropucha
         [:if, branches.map(&:to_sexp), has_else? ? else_branch.to_sexp : nil]
       end
 
-      def if_branch
-        branches.first
-      end
-
-      def elseif_branches
-        branches[1..-1]
-      end
-
       def context(ctx)
-        if_branch.context(ctx)
-        elseif_branches.each{|b| b.context(ctx) }
+        branches.each{|b| b.context(ctx) }
         else_branch.context(ctx) if has_else?
       end
 
       def compile(g)
-        if_branch.compile(g, "if")
-        elseif_branches.each{|e| e.compile(g, "elseif") }
-        else_branch.compile(g) if has_else?
+        if has_else?
+          branches.first.compile(g, branches[1..-1] + [else_branch])
+        else
+          branches.first.compile(g, branches[1..-1])
+        end
       end
 
       class Branch < Node
@@ -105,11 +98,16 @@ module Ropucha
           block.context(ctx)
         end
 
-        def compile(g, type)
-          generator_msg = type == "if" ? :if_ : :elseif_
+        def compile(g, elses)
           conditions.to_condition_list(g) do |condition_list|
-            g.__send__(generator_msg, condition_list) do |g|
+            g.if_(condition_list) do |g|
               block.compile(g)
+            end
+
+            unless elses.empty?
+              g.else_ do
+                elses.first.compile(g, elses[1..-1])
+              end
             end
           end
         end
@@ -131,10 +129,12 @@ module Ropucha
           block.context(ctx)
         end
 
-        def compile(g)
-          g.else_ do |g|
-            block.compile(g)
+        def compile(g, elses)
+          unless elses.empty?
+            raise RuntimeError, "elses is not empty when given to ElseBranch#compile"
           end
+
+          block.compile(g)
         end
       end
     end

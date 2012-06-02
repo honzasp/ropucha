@@ -130,3 +130,37 @@ Feature: Conditions
     o load param_dest:var:z param_src:dec_num:0
     o end
     """
+
+  Scenario: Elseif with condition that needs a temporary variable
+    Given a program
+    """
+    main
+      if a > b
+        x = 1
+      elseif a + 3 > b
+        x = 2
+      else
+        x = 3
+      end
+    end
+    """
+    When I compile the program
+    Then the TSK should contain lines
+    """
+    o if param_src:var:a lop:> param_src:var:b rop:then
+    o begin
+    o load param_dest:var:x param_src:dec_num:1
+    o end
+    o else
+    o begin
+    o compute param_dest:var:_tmp_1 param_src:var:a aop:+ param_src:dec_num:3
+    o if param_src:var:_tmp_1 lop:> param_src:var:b rop:then
+    o begin
+    o load param_dest:var:x param_src:dec_num:2
+    o end
+    o else
+    o begin
+    o load param_dest:var:x param_src:dec_num:3
+    o end
+    o end
+    """

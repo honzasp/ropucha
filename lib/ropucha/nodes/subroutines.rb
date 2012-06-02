@@ -127,7 +127,7 @@ module Ropucha
       end
 
       def compile(g)
-        subr = @context.subroutine_def
+        subr = @context.subroutine
 
         if has_return_value?
           return_value.load_to(g, subr.return_tsk_var)

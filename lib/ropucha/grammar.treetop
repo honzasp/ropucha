@@ -202,41 +202,41 @@ module Ropucha
     end
 
     rule conditions
-      first:condition space tail:(logical_operator space? condition space?)+ {
-        def to_node
-          tail.elements.inject(first.to_node) do |conditions, e|
-            Nodes::Logic.new(e, e.logical_operator.to_sym, conditions, e.condition.to_node)
-          end
-        end
-      } / condition
+      logical_ors
     end
 
-    rule condition
-      "(" space? conditions space? ")" {
-        def to_node
-          conditions.to_node
-        end
-      } / left:expression space? compare_operator space? right:expression {
+    rule logical_ors
+      first:logical_ands space? tail:(operator:logical_or_operator space?  operand:logical_ands space?)+ 
+      <LogicOperation> / logical_ands
+    end
+
+    rule logical_or_operator
+      "or" word_end <Operator>
+    end
+
+    rule logical_ands
+      first:comparsion space? tail:(operator:logical_and_operator space? operand:comparsion space?)+ 
+      <LogicOperation> / comparsion 
+    end
+
+    rule logical_and_operator
+      "and" word_end <Operator>
+    end
+
+    rule comparsion
+      left:expression space? compare_operator space? right:expression {
         def to_node
           Nodes::Compare.new(self, compare_operator.to_sym, left.to_node, right.to_node)
         end
-      }
-    end
-
-    rule logical_operator
-      "" ("and" / "or") {
-        def to_sym
-          text_value.to_sym
+      } / "(" space? conditions space? ")" {
+        def to_node
+          conditions.to_node
         end
-      }
+      } / expression
     end
 
     rule compare_operator
-      "" ("==" / "!=" / "<=" / ">=" / "<" / ">") {
-        def to_sym
-          text_value.to_sym
-        end
-      }
+      "" ("==" / "!=" / "<=" / ">=" / "<" / ">") <Operator>
     end
 
     rule call
@@ -281,7 +281,7 @@ module Ropucha
     end
 
     rule additive_operator
-      ("+" / "-") <ArithmeticOperator>
+      ("+" / "-") <Operator>
     end
 
     rule multitive
@@ -290,7 +290,7 @@ module Ropucha
     end
 
     rule multitive_operator
-      ("*" / "/") <ArithmeticOperator>
+      ("*" / "/") <Operator>
     end
 
     rule bit_ands
@@ -299,7 +299,7 @@ module Ropucha
     end
 
     rule bit_and_operator
-      "" "&" <ArithmeticOperator>
+      "" "&" <Operator>
     end
 
     rule bit_ors
@@ -308,7 +308,7 @@ module Ropucha
     end
 
     rule bit_or_operator
-      "" "|" <ArithmeticOperator>
+      "" "|" <Operator>
     end
 
     rule primary

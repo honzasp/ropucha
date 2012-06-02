@@ -1,7 +1,11 @@
+require 'ropucha/nodes/has_value'
+
 module Ropucha
   module Nodes
 
     class Arithmetic < Node
+      include HasValue
+
       def initialize(syntax_node, operator, left, right)
         super(syntax_node)
         @operator = operator

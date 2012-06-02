@@ -2,6 +2,8 @@ module Ropucha
   module Nodes
 
     class Variable < Node
+      include HasValue
+
       def initialize(syntax_node, name)
         super(syntax_node)
         @name = name

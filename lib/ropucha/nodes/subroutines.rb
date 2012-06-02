@@ -57,6 +57,8 @@ module Ropucha
     end
 
     class Call < Node
+      include HasValue
+
       def initialize(syntax_node, name, arguments)
         super(syntax_node)
         @name = name

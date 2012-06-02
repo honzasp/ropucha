@@ -1,14 +1,29 @@
+require 'ropucha/nodes/node'
+require 'ropucha/nodes/conditions'
+require 'ropucha/nodes/arithmetic'
+
 module Ropucha
   module GrammarHelper
-    module ArithmeticOperation
+
+    module LeftAssocOperation
       def to_node
         tail.elements.inject(first.to_node) do |acc, operation|
-          Nodes::Arithmetic.new(operation, operation.operator.to_sym, acc, operation.operand.to_node)
+          node_class.new(operation, operation.operator.to_sym, acc, operation.operand.to_node)
         end
       end
     end
 
-    module ArithmeticOperator
+    module ArithmeticOperation
+      include LeftAssocOperation
+      def node_class; Nodes::Arithmetic; end
+    end
+
+    module LogicOperation
+      include LeftAssocOperation
+      def node_class; Nodes::Logic; end
+    end
+
+    module Operator
       def to_sym
         text_value.to_sym
       end

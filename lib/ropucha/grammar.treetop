@@ -77,7 +77,7 @@ module Ropucha
     end
 
     rule device_name_def
-      device_name space? "=" space? device_id {
+      device_name space? "=" space? device_id space? {
         def to_node
           Nodes::DeviceNameDef.new(self, device_name.to_node, device_id.to_node)
         end
@@ -110,10 +110,6 @@ module Ropucha
           Nodes::Block.new(self, list.elements.map{|e| e.statement.to_node })
         end
       }
-    end
-
-    rule statement_end
-      ([\n;] / "\r\n") whitespace?
     end
 
     rule statement
@@ -521,6 +517,14 @@ module Ropucha
       "elseif" / "else" / "and" / "or" / "true" / "false") word_end
     end
 
+    rule statement_end
+      space? (line_end / ";") whitespace?
+    end
+
+    rule line_end
+      "\n" / "\r\n"
+    end
+
     rule word_end
       !word_character
     end
@@ -530,11 +534,15 @@ module Ropucha
     end
 
     rule whitespace
-      [ \t\r\n]+
+      ([ \t\r\n]* comment [ \t\r\n]*)+ / [ \t\r\n]+
+    end
+
+    rule comment
+      "//" (!line_end .)* !(!line_end .)
     end
 
     rule space
-      [ \t]+
+      ([ \t]* comment) / [ \t]+
     end
   end
 end
